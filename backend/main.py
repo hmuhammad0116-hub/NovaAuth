@@ -554,16 +554,23 @@ def delete_app(data: DeleteAppRequest, request: Request, db: Session = Depends(g
         return denied
 
     app_data = db.query(App).filter(App.app_id == data.app_id).first()
-
     if not app_data:
         return {"success": False, "message": "App not found"}
 
-    db.query(User).filter(User.app_id == data.app_id).delete()
+    users = db.query(User).filter(User.app_id == data.app_id).all()
+
+    for user in users:
+        db.query(UserSession).filter(UserSession.user_id == user.id).delete()
+        db.query(Log).filter(Log.user_id == user.id).delete()
+        db.delete(user)
+
     db.query(License).filter(License.app_id == data.app_id).delete()
+    db.query(Log).filter(Log.app_id == data.app_id).delete()
+
     db.delete(app_data)
     db.commit()
 
-    return {"success": True, "message": "App and related data deleted"}
+    return {"success": True, "message": "App, users, licenses, sessions and logs deleted"}
 
 
 @app.post("/api/v1/admin/app-status")
@@ -648,14 +655,13 @@ def delete_license(data: DeleteLicenseRequest, request: Request, db: Session = D
         return denied
 
     lic = db.query(License).filter(License.id == data.license_id).first()
-
     if not lic:
         return {"success": False, "message": "License not found"}
 
     db.delete(lic)
     db.commit()
 
-    return {"success": True, "message": "License deleted"}
+    return {"success": True, "message": "License deleted successfully"}
 
 
 @app.get("/api/v1/admin/users")
@@ -718,15 +724,21 @@ def delete_user(data: DeleteUserRequest, request: Request, db: Session = Depends
         return denied
 
     user = db.query(User).filter(User.id == data.user_id).first()
-
     if not user:
         return {"success": False, "message": "User not found"}
 
     db.query(UserSession).filter(UserSession.user_id == user.id).delete()
+    db.query(Log).filter(Log.user_id == user.id).delete()
+
+    licenses = db.query(License).filter(License.used_by == user.id).all()
+    for lic in licenses:
+        lic.used = False
+        lic.used_by = None
+
     db.delete(user)
     db.commit()
 
-    return {"success": True, "message": "User deleted"}
+    return {"success": True, "message": "User deleted and license released"}
 
 
 @app.post("/api/v1/admin/reset-hwid")
