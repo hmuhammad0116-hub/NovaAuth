@@ -21,9 +21,9 @@ def verify_password(password: str, hashed: str):
     return pwd_context.verify(password, hashed)
 
 
-def create_token(data: dict):
+def create_token(data: dict, minutes: int | None = None):
     payload = data.copy()
-    payload["exp"] = datetime.utcnow() + timedelta(minutes=TOKEN_MINUTES)
+    payload["exp"] = datetime.utcnow() + timedelta(minutes=minutes or TOKEN_MINUTES)
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 

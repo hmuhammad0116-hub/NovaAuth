@@ -1,9 +1,41 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+
+
+class AccountRegisterRequest(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
+
+class AccountVerifyRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
+class AccountLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class StaffRequestCreate(BaseModel):
+    token: str
+    requested_role: str
+
+
+class StaffRequestAction(BaseModel):
+    request_id: int
+    approve: bool
+
+
+class MakeAdminRequest(BaseModel):
+    account_id: int
+    role: str
 
 
 class CreateAppRequest(BaseModel):
     name: str
     version: str = "1.0.0"
+    owner_id: int | None = None
 
 
 class RegisterRequest(BaseModel):
@@ -13,6 +45,7 @@ class RegisterRequest(BaseModel):
     password: str
     license_key: str
     hwid: str
+    email: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -44,3 +77,20 @@ class ResetHWIDRequest(BaseModel):
 class ExtendUserRequest(BaseModel):
     user_id: int
     days: int
+
+
+class DeleteUserRequest(BaseModel):
+    user_id: int
+
+
+class DeleteLicenseRequest(BaseModel):
+    license_id: int
+
+
+class DeleteAppRequest(BaseModel):
+    app_id: str
+
+
+class AppStatusRequest(BaseModel):
+    app_id: str
+    status: str

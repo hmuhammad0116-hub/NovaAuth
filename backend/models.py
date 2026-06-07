@@ -1,17 +1,54 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
 from sqlalchemy.sql import func
 from database import Base
+
+
+class Account(Base):
+    __tablename__ = "accounts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    username = Column(String(100), unique=True, index=True, nullable=False)
+    password_hash = Column(String(255), nullable=True)
+    google_id = Column(String(255), nullable=True)
+    role = Column(String(30), default="customer")
+    email_verified = Column(Boolean, default=False)
+    banned = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class EmailCode(Base):
+    __tablename__ = "email_codes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), index=True, nullable=False)
+    code = Column(String(20), nullable=False)
+    used = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class StaffRequest(Base):
+    __tablename__ = "staff_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    account_id = Column(Integer, nullable=False)
+    requested_role = Column(String(30), nullable=False)
+    status = Column(String(30), default="pending")
+    created_at = Column(DateTime, server_default=func.now())
+
 
 class App(Base):
     __tablename__ = "apps"
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, nullable=True)
     app_id = Column(String(100), unique=True, index=True, nullable=False)
     name = Column(String(100), nullable=False)
     secret = Column(String(255), nullable=False)
     version = Column(String(50), default="1.0.0")
     status = Column(String(30), default="active")
     created_at = Column(DateTime, server_default=func.now())
+
 
 class User(Base):
     __tablename__ = "users"
@@ -20,10 +57,12 @@ class User(Base):
     app_id = Column(String(100), index=True, nullable=False)
     username = Column(String(100), index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=True)
     hwid = Column(String(255), nullable=True)
     banned = Column(Boolean, default=False)
     expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+
 
 class License(Base):
     __tablename__ = "licenses"
@@ -36,6 +75,7 @@ class License(Base):
     duration_days = Column(Integer, default=30)
     created_at = Column(DateTime, server_default=func.now())
 
+
 class Session(Base):
     __tablename__ = "sessions"
 
@@ -44,6 +84,7 @@ class Session(Base):
     token = Column(Text, nullable=False)
     ip = Column(String(100), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+
 
 class Log(Base):
     __tablename__ = "logs"
