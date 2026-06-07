@@ -48,6 +48,24 @@ app = FastAPI(title="NovaAuth API", version="2.0.0")
 
 Base.metadata.create_all(bind=engine)
 
+from sqlalchemy import text
+
+def safe_migrate():
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE apps ADD COLUMN owner_id INT NULL"))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+
+        try:
+            conn.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL"))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+
+safe_migrate()
+
 ADMIN_SECRET = os.getenv("ADMIN_SECRET", "NovaAuth_Admin_Secret_2026_ChangeMe")
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 
